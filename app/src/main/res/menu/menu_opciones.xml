@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:title="Recargar"
+        android:id="@+id/menu_opciones_recargar" />
+    <item
+        android:title="Limpiar"
+        android:id="@+id/menu_opciones_limpiar" />
+</menu>
