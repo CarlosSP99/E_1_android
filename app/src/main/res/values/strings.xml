@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">E_1_android</string>
+    <string name="toolbar_title">Comunidades autónomas</string>
+    <string name="Eliminar_bandera">Eliminar bandera</string>
+
+    <string name="aceptar_modificacion">Aceptar</string>
+    <string name="rechazar_modificacion">Cancelar</string>
+
+</resources>
