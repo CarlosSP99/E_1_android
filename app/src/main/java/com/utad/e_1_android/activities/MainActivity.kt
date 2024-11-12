@@ -3,15 +3,14 @@ package com.utad.e_1_android.activities
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
-import android.view.MenuInflater
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.utad.e_1_android.R
 import com.utad.e_1_android.adapter.BanderaAdapter
@@ -23,40 +22,52 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var listaBanderas: MutableList<Bandera>
     private lateinit var adapter: BanderaAdapter
-    private lateinit var LayoutManager: LinearLayoutManager
+
+    private val eliminarOpcionLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val bandera = result.data?.getParcelableExtra<Bandera>("bandera")
+                adapter.updateBandera(bandera!!)
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         setSupportActionBar(binding.toolbar)
         registerForContextMenu(binding.rvBanderas)
 
         // -----Explicación para mi-----
         // Configuramos el onclick de la toolbar
 
-
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
         // Función que muestra todos lo datoss
         initRecyclerView()
     }
 
-    private fun initRecyclerView(){
+    private fun initRecyclerView() {
         listaBanderas = BanderaProvider.cargarBanderas()
-        binding.rvBanderas.layoutManager=LinearLayoutManager(this)
+//        binding.rvBanderas.layoutManager=LinearLayoutManager(this)
+
         // Indicamos al adaptador una función lambda para que al clickar en un item
         // podamos interactuar con el mismo
-        binding.rvBanderas.adapter =
-            BanderaAdapter(
-                listaBanderas,
-            ) { bandera -> onItemSelected(bandera) }
-            // { bandera -> onLongItemSelected(bandera)}
+        adapter = BanderaAdapter(
+            listaBanderas = listaBanderas,
+            onClickListener = { bandera ->
+                onItemSelected(bandera)
+            }
+        )
 
+        binding.rvBanderas.adapter = adapter
     }
 
 
@@ -100,21 +111,23 @@ class MainActivity : AppCompatActivity() {
         val banderaSeleccionada = listaBanderas[item.groupId]
 
         when (item.itemId) {
+            // Eliminar
             0 -> {
-                val alert = AlertDialog.Builder(this).setTitle("Eliminar ${banderaSeleccionada.nombre}")
-                    .setMessage("¿Está seguro de querer eliminar ${banderaSeleccionada.nombre}?")
-                    .setNeutralButton("Cerrar", null)
-                    .setPositiveButton( "Aceptar") { _,_ ->
-                        mostrarMsg("Se ha eliminado ${banderaSeleccionada.nombre}")
-                        listaBanderas.removeAt(item.groupId)
-                        binding.rvBanderas.adapter?.notifyItemRemoved(item.groupId)
-                    }.create()
+                val alert =
+                    AlertDialog.Builder(this).setTitle("Eliminar ${banderaSeleccionada.nombre}")
+                        .setMessage("¿Está seguro de querer eliminar ${banderaSeleccionada.nombre}?")
+                        .setNeutralButton("Cerrar", null)
+                        .setPositiveButton("Aceptar") { _, _ ->
+                            mostrarMsg("Se ha eliminado ${banderaSeleccionada.nombre}")
+                            adapter.deleteBandera(banderaSeleccionada)
+                        }.create()
                 alert.show()
             }
+            // Modificar
             1 -> {
                 intent = Intent(this, EliminarOpcion::class.java)
-                intent.putExtra("imagen_bandera", banderaSeleccionada.imagen)
-
+                intent.putExtra("bandera", banderaSeleccionada)
+                eliminarOpcionLauncher.launch(intent)
             }
         }
 

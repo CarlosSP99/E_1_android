@@ -1,4 +1,11 @@
 package com.utad.e_1_android.model
 
-class Bandera(val nombre: String, val imagen: Int) {
-}
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+data class Bandera(
+    val id: Int,
+    val nombre: String,
+    val imagen: Int
+) : Parcelable

@@ -1,36 +1,48 @@
 package com.utad.e_1_android.activities
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.squareup.picasso.Picasso
-import com.utad.e_1_android.R
 import com.utad.e_1_android.databinding.ActivityEliminarOpcionBinding
+import com.utad.e_1_android.model.Bandera
 
 class EliminarOpcion : AppCompatActivity() {
     private lateinit var binding: ActivityEliminarOpcionBinding
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityEliminarOpcionBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        Picasso.get().load(intent.getIntExtra("imagen_bandera",0)).resize(80,80).centerInside().into(binding.ivBandera)
+        val bandera = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra("bandera", Bandera::class.java)
+        } else {
+            intent.getParcelableExtra<Bandera>("bandera")
+        }
+
+        Picasso.get()
+            .load(bandera!!.imagen)
+            .resize(80, 80)
+            .centerInside()
+            .into(binding.ivBandera)
 
         binding.btAceptarInfo.setOnClickListener {
             val nombreCambiado = binding.etBanderaNombre.text.toString().trim()
             if (nombreCambiado.isEmpty()) {
                 binding.etBanderaNombre.error = "El nombre no puede estar vacío"
             }
-            intent= Intent(this,MainActivity::class.java)
-            intent.putExtra("nombre_bandera",nombreCambiado)
-            startActivity(intent)
+            Intent().apply {
+                putExtra(
+                    "bandera",
+                    bandera.copy(nombre = nombreCambiado)
+                )
+            }.let { intent ->
+                setResult(RESULT_OK, intent)
+            }
+            finish()
         }
     }
-
-
 }
+
